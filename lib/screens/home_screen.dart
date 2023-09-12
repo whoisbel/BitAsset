@@ -4,23 +4,81 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:chart_sparkline/chart_sparkline.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final CryptoController controller = Get.put(CryptoController());
+  int defaultValue = 10;
+  String? selectedDropdownValue = '10';
+
+  void onDropdownValueChanged(String? newValue) {
+    if (newValue != null) {
+      setState(() {
+        selectedDropdownValue = newValue;
+        defaultValue = int.parse(newValue);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Color.fromARGB(255, 44, 45, 44),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: SingleChildScrollView(
-          physics: ScrollPhysics(),
+          physics: const ScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text("Cryptocurrencies",
                   style: textStyle(MediaQuery.of(context).size.width * 0.08,
                       Colors.white, FontWeight.bold)),
+              //Add widget here and make it be able to change default value
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  DropdownButton<String>(
+                    value: selectedDropdownValue,
+                    onChanged: onDropdownValueChanged,
+                    dropdownColor: Colors.black87,
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.white,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: '10',
+                        child: Text('Top 10',
+                            style: textStyle(
+                                MediaQuery.of(context).size.width * 0.05,
+                                Colors.white,
+                                FontWeight.bold)),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: '15',
+                        child: Text('Top 15',
+                            style: textStyle(
+                                MediaQuery.of(context).size.width * 0.05,
+                                Colors.white,
+                                FontWeight.bold)),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: '30',
+                        child: Text('Top 30',
+                            style: textStyle(
+                                MediaQuery.of(context).size.width * 0.05,
+                                Colors.white,
+                                FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
               Obx(
                 () => controller.isLoading.value
                     ? const Center(
@@ -28,8 +86,8 @@ class HomeScreen extends StatelessWidget {
                       )
                     : ListView.builder(
                         shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: 30,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: defaultValue,
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.only(top: 10, bottom: 10),
@@ -125,6 +183,7 @@ class HomeScreen extends StatelessWidget {
                                           lineColor: _getColor(controller
                                               .cryptoList[index]
                                               .priceChangePercentage24H),
+                                          lineWidth: 2,
                                         ),
                                       )
                                     ],
