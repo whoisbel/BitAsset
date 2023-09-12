@@ -6,6 +6,7 @@ import 'package:chart_sparkline/chart_sparkline.dart';
 
 class HomeScreen extends StatelessWidget {
   final CryptoController controller = Get.put(CryptoController());
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,7 +19,8 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text("Cryptocurrencies",
-                  style: textStyle(25, Colors.white, FontWeight.bold)),
+                  style: textStyle(MediaQuery.of(context).size.width * 0.08,
+                      Colors.white, FontWeight.bold)),
               Obx(
                 () => controller.isLoading.value
                     ? const Center(
@@ -27,10 +29,10 @@ class HomeScreen extends StatelessWidget {
                     : ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
-                        itemCount: 15,
+                        itemCount: 30,
                         itemBuilder: (context, index) {
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 20),
+                            padding: const EdgeInsets.only(top: 10, bottom: 10),
                             child: Container(
                               width: MediaQuery.of(context).size.width,
                               height: 60,
@@ -40,11 +42,23 @@ class HomeScreen extends StatelessWidget {
                                 children: [
                                   Row(
                                     children: [
+                                      Text(
+                                        "${index + 1}.)",
+                                        style: textStyle(
+                                            MediaQuery.of(context).size.width *
+                                                0.04,
+                                            Colors.white,
+                                            FontWeight.w600),
+                                      ),
                                       Container(
-                                        width: 60,
-                                        height: 60,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.168,
+                                        height:
+                                            MediaQuery.of(context).size.width *
+                                                0.168,
                                         child: Padding(
-                                            padding: const EdgeInsets.all(10),
+                                            padding: const EdgeInsets.all(5),
                                             child: Image.network(controller
                                                 .cryptoList[index].image)),
                                       ),
@@ -60,13 +74,21 @@ class HomeScreen extends StatelessWidget {
                                           ),
                                           Text(
                                             "${controller.cryptoList[index].name} (${controller.cryptoList[index].symbol.toUpperCase()})",
-                                            style: textStyle(16, Colors.white,
+                                            style: textStyle(
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.035,
+                                                Colors.white,
                                                 FontWeight.w600),
                                           ),
                                           Text(
-                                            "${controller.cryptoList[index].priceChangePercentage24H}%",
+                                            "${controller.cryptoList[index].priceChangePercentage24H.toStringAsFixed(2)}%",
                                             style: textStyle(
-                                                18,
+                                                MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.035,
                                                 _getColor(controller
                                                     .cryptoList[index]
                                                     .priceChangePercentage24H),
@@ -76,9 +98,6 @@ class HomeScreen extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(
-                                    width: 20,
-                                  ),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
@@ -86,13 +105,20 @@ class HomeScreen extends StatelessWidget {
                                         height: 10,
                                       ),
                                       Text(
-                                        "\$${controller.cryptoList[index].currentPrice}",
+                                        "\$${controller.cryptoList[index].currentPrice.toStringAsFixed(2)}",
                                         style: textStyle(
-                                            16, Colors.white, FontWeight.w600),
+                                            MediaQuery.of(context).size.width *
+                                                0.035,
+                                            Colors.white,
+                                            FontWeight.w600),
                                       ),
                                       Container(
-                                        width: 90,
-                                        height: 50,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.08,
+                                        height:
+                                            MediaQuery.of(context).size.width *
+                                                0.05,
                                         child: Sparkline(
                                           data: controller.cryptoList[index]
                                               .sparklineIn7D.price,
@@ -101,8 +127,6 @@ class HomeScreen extends StatelessWidget {
                                               .priceChangePercentage24H),
                                         ),
                                       )
-
-                                      //Add Sparkline here
                                     ],
                                   ),
                                 ],
