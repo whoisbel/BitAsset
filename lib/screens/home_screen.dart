@@ -39,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
               Text("Cryptocurrencies",
                   style: textStyle(MediaQuery.of(context).size.width * 0.08,
                       Colors.white, FontWeight.bold)),
-              //Add widget here and make it be able to change default value
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -134,8 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       actions: [
                                         ElevatedButton(
                                           onPressed: () {
-                                            Navigator.of(context)
-                                                .pop(); // Close the dialog
+                                            Navigator.of(context).pop();
                                           },
                                           child: Text('Close'),
                                         ),
@@ -268,11 +266,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
 Color _getColor(double percentage) {
   if (percentage > 0) {
-    return Colors.green; // Positive percentage, display in green
+    return Colors.green;
   } else if (percentage < 0) {
-    return Colors.red; // Negative percentage, display in red
+    return Colors.red;
   } else {
-    return Colors
-        .grey; // Zero percentage, display in grey or any other color you prefer
+    return Colors.grey;
   }
 }
