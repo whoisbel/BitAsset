@@ -20,7 +20,7 @@ class MainApp extends StatelessWidget {
       navigatorKey: myNavigatorKey,
       routes: {
         '/Cryptocurrencies': (context) => HomeScreen(),
-        '/Portfolio': (context) => Portfolio(),
+        '/Portfolio': (context) => PortfolioViewPage(),
       },
       builder: (context, child) {
         return Scaffold(
