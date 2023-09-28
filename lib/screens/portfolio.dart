@@ -3,14 +3,22 @@ import 'package:bitset/controllers/portfolio_controller.dart';
 import 'package:bitset/model/portfolio_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bitset/utils.dart';
+import 'package:bitset/controllers/crypto_controller.dart';
+import 'package:get/get.dart';
 
 class PortfolioViewPage extends StatefulWidget {
+  final dynamic cryptoData;
+
+  // Make cryptoData optional by providing a default value of null.
+  PortfolioViewPage({Key? key, this.cryptoData}) : super(key: key);
+
   @override
   State<PortfolioViewPage> createState() => _PortfolioViewPageState();
 }
 
 class _PortfolioViewPageState extends State<PortfolioViewPage> {
   late PortfolioController _portfolioController;
+  final CryptoController controller = Get.put(CryptoController());
 
   TextEditingController _assetNameController = TextEditingController();
   TextEditingController _tickerSymbolController = TextEditingController();
@@ -34,6 +42,18 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cryptoName = widget.cryptoData?.name ?? 'No Name';
+    final cryptoSymbol = widget.cryptoData?.symbol ?? 'No Symbol';
+    if (cryptoName != 'No Name' || cryptoSymbol != "No Symbol") {
+      return Scaffold(
+        backgroundColor: Color.fromARGB(255, 44, 45, 44),
+        body: AlertDialog(
+          backgroundColor: Color.fromARGB(255, 44, 45, 44),
+          title: Text("data"),
+          content: Column(children: [Text("$cryptoName $cryptoSymbol")]),
+        ),
+      );
+    }
     if (_portfolioController == null) {
       return Scaffold(
         body: Center(
@@ -48,7 +68,6 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
             Expanded(
               child: _buildPortfolioList(),
             ),
-            _buildAddAssetForm(),
           ],
         ),
       );
@@ -113,80 +132,6 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
         child: Text('No data available.'),
       );
     }
-  }
-
-  Widget _buildAddAssetForm() {
-    return Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Add Asset',
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.width * 0.04,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          TextFormField(
-            controller: _assetNameController,
-            style: textStyle(
-              MediaQuery.of(context).size.width * 0.035,
-              Colors.white,
-              FontWeight.w600,
-            ),
-            decoration: InputDecoration(
-              labelText: 'Asset Name',
-              labelStyle:
-                  TextStyle(color: Colors.white), // Set label text color
-            ),
-          ),
-          TextFormField(
-            controller: _tickerSymbolController,
-            style: textStyle(
-              MediaQuery.of(context).size.width * 0.035,
-              Colors.white,
-              FontWeight.w600,
-            ),
-            decoration: InputDecoration(
-              labelText: 'Ticker Symbol',
-              labelStyle: TextStyle(color: Colors.white),
-            ),
-          ),
-          TextFormField(
-            controller: _quantityController,
-            keyboardType: TextInputType.number,
-            style: textStyle(
-              MediaQuery.of(context).size.width * 0.035,
-              Colors.white,
-              FontWeight.w600,
-            ),
-            decoration: InputDecoration(
-              labelText: 'Quantity',
-              labelStyle: TextStyle(color: Colors.white),
-            ),
-          ),
-          TextFormField(
-            controller: _totalInvestedController,
-            keyboardType: TextInputType.number,
-            style: textStyle(
-              MediaQuery.of(context).size.width * 0.035,
-              Colors.white,
-              FontWeight.w600,
-            ),
-            decoration: InputDecoration(
-              labelText: 'Total Invested',
-              labelStyle: TextStyle(color: Colors.white),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: _addAsset,
-            child: Text('Add'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _addAsset() {
@@ -327,8 +272,8 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
       final Asset updatedAsset = Asset(
         assetName: asset.assetName,
         tickerSymbol: asset.tickerSymbol,
-        quantity: asset.quantity + quantity,
-        totalInvested: asset.totalInvested + totalInvested,
+        quantity: quantity,
+        totalInvested: totalInvested,
       );
 
       _portfolioController.editAsset(updatedAsset, buy: true);
@@ -348,14 +293,24 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
 
   void _sellAsset(Asset asset, double quantity, double totalInvested) {
     if (quantity > 0 && totalInvested > 0) {
-      final Asset updatedAsset = Asset(
-        assetName: asset.assetName,
-        tickerSymbol: asset.tickerSymbol,
-        quantity: asset.quantity - quantity,
-        totalInvested: asset.totalInvested - totalInvested,
-      );
+      final double updatedQuantity = asset.quantity - quantity;
+      final double updatedTotalInvested = asset.totalInvested - totalInvested;
 
-      _portfolioController.editAsset(updatedAsset, buy: false);
+      // Check if the updated quantity and total invested are both zero.
+      if (updatedQuantity <= 0 && updatedTotalInvested <= 0) {
+        // Remove the asset from the list if both quantity and total invested are zero or negative.
+        _portfolioController.removeAsset(asset.tickerSymbol);
+      } else {
+        // Update the asset with the new quantity and total invested.
+        final Asset updatedAsset = Asset(
+          assetName: asset.assetName,
+          tickerSymbol: asset.tickerSymbol,
+          quantity: updatedQuantity,
+          totalInvested: updatedTotalInvested,
+        );
+
+        _portfolioController.editAsset(updatedAsset, buy: false);
+      }
 
       // Trigger a rebuild of the widget.
       setState(() {});

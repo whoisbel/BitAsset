@@ -1,6 +1,5 @@
 import 'package:bitset/model/portfolio_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:bitset/utils.dart';
 
 class PortfolioController {
   final SharedPreferences prefs;
