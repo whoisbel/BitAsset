@@ -20,11 +20,6 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
   late PortfolioController _portfolioController;
   final CryptoController controller = Get.put(CryptoController());
 
-  TextEditingController _assetNameController = TextEditingController();
-  TextEditingController _tickerSymbolController = TextEditingController();
-  TextEditingController _quantityController = TextEditingController();
-  TextEditingController _totalInvestedController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -44,25 +39,62 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
   Widget build(BuildContext context) {
     final cryptoName = widget.cryptoData?.name ?? 'No Name';
     final cryptoSymbol = widget.cryptoData?.symbol ?? 'No Symbol';
+    final cryptoPrice = widget.cryptoData?.currentPrice ?? 'No Price';
+    TextEditingController asset = TextEditingController();
+
     if (cryptoName != 'No Name' || cryptoSymbol != "No Symbol") {
       return Scaffold(
         backgroundColor: Color.fromARGB(255, 44, 45, 44),
         body: AlertDialog(
           backgroundColor: Color.fromARGB(255, 44, 45, 44),
-          title: Text("data"),
-          content: Column(children: [Text("$cryptoName $cryptoSymbol")]),
+          title: const Text("Investment"),
+          content: Column(
+            children: [
+              const Text("Enter the amount you want to invest:"),
+              TextField(
+                keyboardType: TextInputType.number, // Allow numeric input
+                decoration: const InputDecoration(
+                  hintText: "Enter amount",
+                ),
+                // You can capture the user's input using a TextEditingController
+                controller: asset,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Access the user's input from the TextEditingController
+                final double investmentAmount = double.parse(asset.text);
+                // You can use the investmentAmount as needed
+                _addAsset(cryptoName, cryptoSymbol.toString().toUpperCase(),
+                    cryptoPrice, investmentAmount);
+                print("User wants to invest: $investmentAmount");
+                // Close the dialog
+                Navigator.of(context).pop();
+              },
+              child: const Text("OK"),
+            ),
+            TextButton(
+              onPressed: () {
+                // Close the dialog without doing anything
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+          ],
         ),
       );
     }
     if (_portfolioController == null) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
         ),
       );
     } else {
       return Scaffold(
-        backgroundColor: Color.fromARGB(255, 44, 45, 44),
+        backgroundColor: const Color.fromARGB(255, 44, 45, 44),
         body: Column(
           children: [
             Expanded(
@@ -82,7 +114,6 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
         itemCount: portfolioModel.assets.length,
         itemBuilder: (context, index) {
           final Asset asset = portfolioModel.assets[index];
-
           return ListTile(
             title: Text(asset.assetName,
                 style: textStyle(MediaQuery.of(context).size.width * 0.035,
@@ -105,20 +136,20 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
                         _showBuyDialog(asset);
                       },
                       style: ElevatedButton.styleFrom(
-                        primary: Colors.green,
+                        backgroundColor: Colors.green,
                       ),
-                      child: Text('Buy'),
+                      child: const Text('Buy'),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () {
                         // Button for selling the asset.
                         _showSellDialog(asset);
                       },
                       style: ElevatedButton.styleFrom(
-                        primary: Colors.red,
+                        backgroundColor: Colors.red,
                       ),
-                      child: Text('Sell'),
+                      child: const Text('Sell'),
                     ),
                   ],
                 ),
@@ -128,18 +159,17 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
         },
       );
     } else {
-      return Center(
+      return const Center(
         child: Text('No data available.'),
       );
     }
   }
 
-  void _addAsset() {
-    final String assetName = _assetNameController.text;
-    final String tickerSymbol = _tickerSymbolController.text;
-    final double quantity = double.tryParse(_quantityController.text) ?? 0;
-    final double totalInvested =
-        double.tryParse(_totalInvestedController.text) ?? 0.0;
+  void _addAsset(String asset, String ticker, double price, double amount) {
+    final String assetName = asset;
+    final String tickerSymbol = ticker;
+    final double quantity = amount / price;
+    final double totalInvested = amount;
 
     if (assetName.isNotEmpty &&
         tickerSymbol.isNotEmpty &&
@@ -154,17 +184,11 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
 
       _portfolioController.addAsset(newAsset);
 
-      // Clear the input fields and trigger a rebuild of the widget.
-      _assetNameController.clear();
-      _tickerSymbolController.clear();
-      _quantityController.clear();
-      _totalInvestedController.clear();
-
       setState(() {});
     } else {
       // Show an error message to the user if any field is empty or invalid.
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please enter valid asset details.'),
         ),
       );
@@ -188,14 +212,14 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
                 onChanged: (value) {
                   quantity = double.tryParse(value) ?? 0;
                 },
-                decoration: InputDecoration(labelText: 'Quantity'),
+                decoration: const InputDecoration(labelText: 'Quantity'),
               ),
               TextFormField(
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   totalInvested = double.tryParse(value) ?? 0;
                 },
-                decoration: InputDecoration(labelText: 'Total Invested'),
+                decoration: const InputDecoration(labelText: 'Total Invested'),
               ),
             ],
           ),
@@ -204,14 +228,14 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
                 _buyAsset(asset, quantity, totalInvested);
                 Navigator.of(context).pop();
               },
-              child: Text('Buy'),
+              child: const Text('Buy'),
             ),
           ],
         );
@@ -236,14 +260,14 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
                 onChanged: (value) {
                   quantity = double.tryParse(value) ?? 0;
                 },
-                decoration: InputDecoration(labelText: 'Quantity'),
+                decoration: const InputDecoration(labelText: 'Quantity'),
               ),
               TextFormField(
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   totalInvested = double.tryParse(value) ?? 0;
                 },
-                decoration: InputDecoration(labelText: 'Total Invested'),
+                decoration: const InputDecoration(labelText: 'Total Invested'),
               ),
             ],
           ),
@@ -252,14 +276,14 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
                 _sellAsset(asset, quantity, totalInvested);
                 Navigator.of(context).pop();
               },
-              child: Text('Sell'),
+              child: const Text('Sell'),
             ),
           ],
         );
@@ -283,7 +307,7 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
     } else {
       // Show an error message to the user if the quantity or total investment is invalid.
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content:
               Text('Please enter a valid quantity and total invested amount.'),
         ),
@@ -297,7 +321,7 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
       final double updatedTotalInvested = asset.totalInvested - totalInvested;
 
       // Check if the updated quantity and total invested are both zero.
-      if (updatedQuantity <= 0 && updatedTotalInvested <= 0) {
+      if (updatedQuantity <= 0 || updatedTotalInvested <= 0) {
         // Remove the asset from the list if both quantity and total invested are zero or negative.
         _portfolioController.removeAsset(asset.tickerSymbol);
       } else {
@@ -317,7 +341,7 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
     } else {
       // Show an error message to the user if the quantity or total investment is invalid.
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content:
               Text('Please enter a valid quantity and total invested amount.'),
         ),
@@ -330,5 +354,13 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
 
     // Trigger a rebuild of the widget.
     setState(() {});
+  }
+
+  double _getTotalInvest(PortfolioModel model) {
+    double result = 0;
+    for (var i = 0; i < model.assets.length; i++) {
+      result += model.assets[i].totalInvested;
+    }
+    return result;
   }
 }
