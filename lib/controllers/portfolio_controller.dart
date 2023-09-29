@@ -38,7 +38,7 @@ class PortfolioController {
     prefs.setString('portfolioModel', portfolioModelToJson(portfolioModel));
   }
 
-  void editAsset(Asset asset, {bool buy = true}) {
+  void editAsset(Asset asset) {
     // Get the existing portfolio model.
     final PortfolioModel portfolioModel = this.portfolioModel;
 
@@ -48,18 +48,8 @@ class PortfolioController {
 
     // If the asset exists, update its quantity and total invested based on the buy/sell operation.
     if (assetIndex != -1) {
-      if (buy) {
-        portfolioModel.assets[assetIndex].quantity += asset.quantity;
-        portfolioModel.assets[assetIndex].totalInvested += asset.totalInvested;
-      } else {
-        portfolioModel.assets[assetIndex].quantity -= asset.quantity;
-        portfolioModel.assets[assetIndex].totalInvested -= asset.totalInvested;
-
-        // If the asset quantity reaches zero, remove the asset from the portfolio model.
-        if (portfolioModel.assets[assetIndex].quantity == 0) {
-          portfolioModel.assets.removeAt(assetIndex);
-        }
-      }
+      portfolioModel.assets[assetIndex].quantity = asset.quantity;
+      portfolioModel.assets[assetIndex].totalInvested = asset.totalInvested;
     }
 
     // Save the updated portfolio model to shared preferences.

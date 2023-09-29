@@ -15,6 +15,7 @@ dependencies:
   chart_sparkline:
   intl:
   shared_preferences:
+  pie_chart:
 dev_dependencies:
   flutter_test:
     sdk: flutter
