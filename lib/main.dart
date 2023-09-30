@@ -2,6 +2,7 @@ import 'package:bitset/screens/home_screen.dart';
 import 'package:bitset/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:bitset/screens/portfolio.dart';
+import 'screens/profit_loss_calculator.dart';
 
 void main() {
   runApp(MainApp());
@@ -21,6 +22,7 @@ class MainApp extends StatelessWidget {
       routes: {
         '/Cryptocurrencies': (context) => HomeScreen(),
         '/Portfolio': (context) => PortfolioViewPage(),
+        '/Calculator': (context) => Calculator(),
       },
       builder: (context, child) {
         return Scaffold(
@@ -75,6 +77,21 @@ class MainApp extends StatelessWidget {
                       // Use myNavigatorKey instead of context
                       myNavigatorKey.currentState!.pop();
                       myNavigatorKey.currentState!.pushNamed('/Portfolio');
+                    },
+                  ),
+                  ListTile(
+                    title: Text(
+                      'Profit/Loss Calculator',
+                      style: textStyle(
+                        MediaQuery.of(context).size.width * 0.04,
+                        Colors.white,
+                        FontWeight.bold,
+                      ),
+                    ),
+                    onTap: () {
+                      // Use myNavigatorKey instead of context
+                      myNavigatorKey.currentState!.pop();
+                      myNavigatorKey.currentState!.pushNamed('/Calculator');
                     },
                   ),
                 ],
