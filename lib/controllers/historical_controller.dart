@@ -9,8 +9,7 @@ class HistoricalController extends GetxController {
   @override
   onInit() {
     super.onInit();
-    // Initial fetch with default values, you can set default values or handle it as needed
-    fetchHistoricalData('bitcoin', '1-1-2014');
+    fetchHistoricalData("ethereum", "1-1-2016");
   }
 
   fetchHistoricalData(String coinSymbol, String date) async {
@@ -22,7 +21,6 @@ class HistoricalController extends GetxController {
         HistoricalModel data = historicalModelFromJson(response.body);
         historicalModel.value = data;
       } else {
-        // Handle error, maybe show a snackbar or something
         print('Failed to load historical data');
       }
     } finally {

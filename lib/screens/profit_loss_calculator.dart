@@ -1,6 +1,8 @@
+import 'package:bitset/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:bitset/controllers/historical_controller.dart';
+import 'package:bitset/controllers/crypto_controller.dart';
 
 class Calculator extends StatefulWidget {
   @override
@@ -9,10 +11,11 @@ class Calculator extends StatefulWidget {
 
 class _CalculatorState extends State<Calculator> {
   final HistoricalController controller = Get.put(HistoricalController());
+  final CryptoController cController = Get.put(CryptoController());
   TextEditingController investmentController = TextEditingController();
   TextEditingController dateController = TextEditingController();
   TextEditingController cryptoController = TextEditingController();
-
+  String result = "";
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -97,7 +100,10 @@ class _CalculatorState extends State<Calculator> {
                     ),
                   );
                 }
-                return SizedBox.shrink();
+                return Text(
+                  result ?? "",
+                  style: textStyle(16, Colors.white, FontWeight.normal),
+                );
               },
             ),
           ],
@@ -106,30 +112,46 @@ class _CalculatorState extends State<Calculator> {
     );
   }
 
-  void calculateProfitLoss() {
+  void calculateProfitLoss() async {
     double initialInvestment =
         double.tryParse(investmentController.text) ?? 0.0;
+    String investmentDate = dateController.text;
+    String selectedCrypto = cryptoController.text;
 
-    if (controller.historicalModel.value != null) {
-      double historicalPrice =
-          controller.historicalModel.value!.marketData.currentPrice['usd'] ??
-              0.0;
-      double currentInvestmentValue = initialInvestment * historicalPrice;
-
-      double profitOrLoss = currentInvestmentValue - initialInvestment;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Profit/Loss: \$${profitOrLoss.toStringAsFixed(2)}'),
-        ),
-      );
+    if (selectedCrypto.isNotEmpty) {
+      await controller.fetchHistoricalData(selectedCrypto, investmentDate);
+      double pastPrice =
+          controller.historicalModel.value!.marketData.currentPrice['usd'] ?? 0;
+      if (controller.historicalModel.value!.marketData.currentPrice['usd'] ==
+          null) {
+        print("Error loading that cryptocurrency data");
+      } else {
+        double pastQuantity = initialInvestment / pastPrice;
+        double currentValue = pastQuantity * _getPrice();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Current value: $currentValue'),
+          ),
+        );
+        result =
+            "If you invested \$$initialInvestment in $selectedCrypto on $investmentDate, its value today would be \$${currentValue.toStringAsFixed(2)}";
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('Failed to calculate profit/loss. Please try again later.'),
+          content: Text('Please enter a cryptocurrency symbol.'),
         ),
       );
     }
+  }
+
+  double _getPrice() {
+    String name = cryptoController.text;
+    for (int i = 0; i < cController.cryptoList.length; i++) {
+      if (name == cController.cryptoList[i].name.toLowerCase()) {
+        return cController.cryptoList[i].currentPrice;
+      }
+    }
+    return 0;
   }
 }

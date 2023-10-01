@@ -80,8 +80,9 @@ class CommunityData {
   factory CommunityData.fromJson(Map<String, dynamic> json) => CommunityData(
         facebookLikes: json["facebook_likes"],
         twitterFollowers: json["twitter_followers"],
-        redditAveragePosts48H: json["reddit_average_posts_48h"],
-        redditAverageComments48H: json["reddit_average_comments_48h"],
+        redditAveragePosts48H: (json["reddit_average_posts_48h"] ?? 0).toInt(),
+        redditAverageComments48H:
+            (json["reddit_average_comments_48h"] ?? 0).toInt(),
         redditSubscribers: json["reddit_subscribers"],
         redditAccountsActive48H: json["reddit_accounts_active_48h"],
       );
