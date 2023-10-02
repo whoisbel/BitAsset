@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final portfolioModel = portfolioModelFromJson(jsonString);
-
 import 'dart:convert';
 
 PortfolioModel portfolioModelFromJson(String str) =>

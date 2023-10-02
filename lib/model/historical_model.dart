@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final historicalModel = historicalModelFromJson(jsonString);
-
 import 'dart:convert';
 
 HistoricalModel historicalModelFromJson(String str) =>

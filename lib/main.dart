@@ -1,106 +1,95 @@
-import 'package:bitset/screens/home_screen.dart';
-import 'package:bitset/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:bitset/screens/home_screen.dart';
 import 'package:bitset/screens/portfolio.dart';
-import 'screens/profit_loss_calculator.dart';
+import 'package:bitset/screens/investment_calculator.dart';
+import 'package:bitset/utils.dart';
 
 void main() {
   runApp(MainApp());
 }
 
-class MainApp extends StatelessWidget {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GlobalKey<NavigatorState> myNavigatorKey = GlobalKey<NavigatorState>();
-  MainApp({Key? key}) : super(key: key);
+class MainApp extends StatefulWidget {
+  @override
+  _MainAppState createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  late PageController _pageController;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
-      navigatorKey: myNavigatorKey,
-      routes: {
-        '/Cryptocurrencies': (context) => HomeScreen(),
-        '/Portfolio': (context) => PortfolioViewPage(),
-        '/Calculator': (context) => Calculator(),
-      },
-      builder: (context, child) {
-        return Scaffold(
-          key: _scaffoldKey,
-          appBar: AppBar(
-            backgroundColor: Color.fromARGB(255, 44, 45, 44),
-            elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.menu),
-              onPressed: () {
-                _scaffoldKey.currentState?.openDrawer();
-              },
-            ),
+      home: Scaffold(
+        backgroundColor: Color.fromARGB(255, 44, 45, 44),
+        appBar: AppBar(
+          backgroundColor: Color.fromARGB(255, 44, 45, 44),
+          elevation: 2,
+          title: Text(
+            _currentIndex == 0
+                ? 'Home'
+                : _currentIndex == 1
+                    ? 'Portfolio'
+                    : 'Investment Calculator',
           ),
-          drawer: Drawer(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color.fromARGB(255, 44, 45, 44),
-              ),
-              child: ListView(
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    child: Image.asset("assets/logo/BitAssetLogo.jpg"),
-                  ),
-                  ListTile(
-                    title: Text(
-                      'View Cryptocurrencies',
-                      style: textStyle(
-                        MediaQuery.of(context).size.width * 0.04,
-                        Colors.white,
-                        FontWeight.bold,
-                      ),
-                    ),
-                    onTap: () {
-                      // Use myNavigatorKey instead of context
-                      myNavigatorKey.currentState!.pop();
-                      myNavigatorKey.currentState!
-                          .pushNamed('/Cryptocurrencies');
-                    },
-                  ),
-                  ListTile(
-                    title: Text(
-                      'Portfolio',
-                      style: textStyle(
-                        MediaQuery.of(context).size.width * 0.04,
-                        Colors.white,
-                        FontWeight.bold,
-                      ),
-                    ),
-                    onTap: () {
-                      // Use myNavigatorKey instead of context
-                      myNavigatorKey.currentState!.pop();
-                      myNavigatorKey.currentState!.pushNamed('/Portfolio');
-                    },
-                  ),
-                  ListTile(
-                    title: Text(
-                      'Profit/Loss Calculator',
-                      style: textStyle(
-                        MediaQuery.of(context).size.width * 0.04,
-                        Colors.white,
-                        FontWeight.bold,
-                      ),
-                    ),
-                    onTap: () {
-                      // Use myNavigatorKey instead of context
-                      myNavigatorKey.currentState!.pop();
-                      myNavigatorKey.currentState!.pushNamed('/Calculator');
-                    },
-                  ),
-                ],
-              ),
+        ),
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          children: [
+            HomeScreen(),
+            PortfolioViewPage(),
+            Calculator(),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: Color.fromARGB(255, 44, 45, 44),
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.grey,
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+              _pageController.animateToPage(
+                _currentIndex,
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            });
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
             ),
-          ),
-          body: child,
-        );
-      },
+            BottomNavigationBarItem(
+              icon: Icon(Icons.folder),
+              label: 'Portfolio',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calculate),
+              label: 'Calculator',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

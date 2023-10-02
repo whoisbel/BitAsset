@@ -39,11 +39,18 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
     final cryptoName = widget.cryptoData?.name ?? 'No Name';
     final cryptoSymbol = widget.cryptoData?.symbol ?? 'No Symbol';
     final cryptoPrice = widget.cryptoData?.currentPrice ?? 'No Price';
+    double totalInvest = _getTotalInvest(_portfolioController.portfolioModel);
+    double updateTotal = _updateTotal();
+    double changeValue = updateTotal - totalInvest;
     TextEditingController asset = TextEditingController();
-
+    Color arrowColor = changeValue >= 0 ? Colors.green : Colors.red;
+    Icon arrowIcon = changeValue >= 0
+        ? Icon(Icons.arrow_upward, color: arrowColor)
+        : Icon(Icons.arrow_downward, color: arrowColor);
     if (cryptoName != 'No Name' || cryptoSymbol != "No Symbol") {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
+        navigatorKey: myNavigatorKey,
         routes: {'/Portfolio': (context) => PortfolioViewPage()},
         home: Scaffold(
           backgroundColor: const Color.fromARGB(255, 44, 45, 44),
@@ -68,8 +75,7 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
                       const SizedBox(height: 8),
                       TextField(
                         style: TextStyle(color: Colors.white),
-                        keyboardType:
-                            TextInputType.number, // Allow numeric input
+                        keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: "Enter amount",
                           hintStyle: TextStyle(color: Colors.white54),
@@ -92,7 +98,6 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
                   TextButton(
                     onPressed: () {
                       final double investmentAmount = double.parse(asset.text);
-                      // You can use the investmentAmount as needed
                       _addAsset(
                         cryptoName,
                         cryptoSymbol.toString().toUpperCase(),
@@ -101,7 +106,7 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
                       );
                       print("User wants to invest: $investmentAmount");
                       Navigator.of(context).pop();
-                      Navigator.of(context).pushNamed('/Portfolio');
+                      Navigator.of(context).pop();
                     },
                     child: const Text(
                       "OK",
@@ -114,24 +119,29 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
           ),
         ),
       );
-    }
-
-    if (_portfolioController == null) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
     } else {
-      return Scaffold(
-        backgroundColor: const Color.fromARGB(255, 44, 45, 44),
-        body: Column(
-          children: [
-            _buildPieChart(),
-            _buildPortfolioList(),
-          ],
-        ),
-      );
+      if (_portfolioController == null) {
+        return const Scaffold(
+          body:
+              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Text(
+              "No data available",
+              style: TextStyle(
+                  color: Colors.red, fontSize: 26, fontWeight: FontWeight.bold),
+            ),
+          ]),
+        );
+      } else {
+        return Scaffold(
+          backgroundColor: const Color.fromARGB(255, 44, 45, 44),
+          body: Column(
+            children: [
+              _buildPieChart(),
+              _buildPortfolioList(),
+            ],
+          ),
+        );
+      }
     }
   }
 
@@ -143,7 +153,6 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
       for (var asset in portfolioModel.assets) {
         dataMap[asset.assetName] = asset.totalInvested;
       }
-
       return Center(
         child: Container(
           margin: const EdgeInsets.all(16.0),
@@ -153,7 +162,7 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
             chartLegendSpacing: 32.0,
             chartRadius: MediaQuery.of(context).size.width / 1.5,
             colorList: _generateRandomColors(dataMap.length),
-            centerText: "Total Balance\n \$${_getTotalInvest(portfolioModel)}",
+            centerText: "\$${_updateTotal().toStringAsFixed(2)}",
             centerTextStyle: textStyle(24, Colors.white, FontWeight.bold),
             chartType: ChartType.ring,
             legendOptions: const LegendOptions(
@@ -178,7 +187,18 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
         ),
       );
     } else {
-      return Container();
+      return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "No data available",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold),
+            ),
+          ]);
     }
   }
 
@@ -191,66 +211,89 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
           itemCount: portfolioModel.assets.length,
           itemBuilder: (context, index) {
             final Asset asset = portfolioModel.assets[index];
-            return Card(
-              color: const Color.fromARGB(255, 44, 45, 44),
-              elevation: 2,
-              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              child: ListTile(
-                leading: Image.network(_getImageLink(controller, asset)),
-                title: Text(
-                  "${asset.assetName} (${asset.tickerSymbol})",
-                  style: textStyle(
-                    14,
-                    Colors.white,
-                    FontWeight.w600,
+            return Dismissible(
+              key: UniqueKey(),
+              onDismissed: (direction) {
+                _removeAsset(asset.tickerSymbol);
+                _updateTotal();
+              },
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                child: Icon(Icons.delete, color: Colors.white),
+              ),
+              child: Card(
+                color: const Color.fromARGB(255, 44, 45, 44),
+                elevation: 2,
+                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: ListTile(
+                  leading: Image.network(_getImageLink(controller, asset)),
+                  title: Text(
+                    "${asset.assetName} (${asset.tickerSymbol})",
+                    style: textStyle(
+                      14,
+                      Colors.white,
+                      FontWeight.w600,
+                    ),
                   ),
-                ),
-                subtitle: Text(
-                  'QTY: ${asset.quantity.toStringAsFixed(8)}',
-                  style: textStyle(
-                    14,
-                    Colors.white,
-                    FontWeight.w600,
+                  subtitle: Text(
+                    'QTY: ${asset.quantity.toStringAsFixed(8)}',
+                    style: textStyle(
+                      14,
+                      Colors.white,
+                      FontWeight.w600,
+                    ),
                   ),
-                ),
-                trailing: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '\$${asset.totalInvested}',
-                      style: textStyle(
-                        14,
-                        Colors.white,
-                        FontWeight.w600,
+                  trailing: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          text:
+                              '\$${(asset.quantity * _getPrice(asset)).toStringAsFixed(2)} ',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: '(${_getProfitLossText(asset)})',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _getProfitLossColor(asset),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            // Button for buying more of the asset.
-                            _showBuyDialog(asset);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              _showBuyDialog(asset);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
+                            child: const Text('Buy'),
                           ),
-                          child: const Text('Buy'),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Button for selling the asset.
-                            _showSellDialog(asset);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () {
+                              _showSellDialog(asset);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                            child: const Text('Sell'),
                           ),
-                          child: const Text('Sell'),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -386,7 +429,7 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                quantity = amount / _getPrice(controller, asset);
+                quantity = amount / _getPrice(asset);
                 _sellAsset(asset, amount, quantity);
                 Navigator.of(context).pop();
               },
@@ -404,7 +447,7 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
   void _buyAsset(Asset asset, double amount) {
     if (amount > 0) {
       final double updatedQuantity =
-          asset.quantity + (amount / _getPrice(controller, asset));
+          asset.quantity + (amount / _getPrice(asset));
       final double updatedTotalInvested = asset.totalInvested + amount;
 
       final Asset updatedAsset = Asset(
@@ -425,6 +468,17 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
         ),
       );
     }
+  }
+
+  String totalPercentage() {
+    double percentageValue = ((_updateTotal() -
+                _getTotalInvest(_portfolioController.portfolioModel)) /
+            _getTotalInvest(_portfolioController.portfolioModel)) *
+        100;
+
+    String formattedPercentage = percentageValue.toStringAsFixed(2);
+
+    return formattedPercentage;
   }
 
   void _sellAsset(Asset asset, double amount, double quantity) {
@@ -460,22 +514,39 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
     setState(() {});
   }
 
-  double _getTotalInvest(PortfolioModel model) {
-    double result = 0;
-    for (var i = 0; i < model.assets.length; i++) {
-      result += model.assets[i].totalInvested;
-    }
-    return result;
-  }
-
-  double _getPrice(CryptoController control, Asset asset) {
-    for (int i = 0; i < control.cryptoList.length; i++) {
-      if (asset.assetName == control.cryptoList[i].name) {
-        return control.cryptoList[i].currentPrice;
+  double _getPrice(Asset asset) {
+    for (int i = 0; i < controller.cryptoList.length; i++) {
+      if (asset.assetName == controller.cryptoList[i].name) {
+        return controller.cryptoList[i].currentPrice;
       }
     }
 
     return 0;
+  }
+
+  double _updateTotal() {
+    double totalUpdatedValue = 0.0;
+
+    for (int i = 0;
+        i < _portfolioController.portfolioModel.assets.length;
+        i++) {
+      for (int j = 0; j < controller.cryptoList.length; j++) {
+        if (_portfolioController.portfolioModel.assets[i].assetName
+                .toLowerCase() ==
+            controller.cryptoList[j].name.toLowerCase()) {
+          double currentPrice = controller.cryptoList[j].currentPrice;
+          double totalInvested =
+              _portfolioController.portfolioModel.assets[i].totalInvested;
+
+          double currentInvestedValue = currentPrice *
+              _portfolioController.portfolioModel.assets[i].quantity;
+          double priceChange = currentInvestedValue - totalInvested;
+          totalUpdatedValue += totalInvested + priceChange;
+        }
+      }
+    }
+
+    return totalUpdatedValue;
   }
 
   String _getImageLink(CryptoController control, Asset asset) {
@@ -487,9 +558,30 @@ class _PortfolioViewPageState extends State<PortfolioViewPage> {
     return "No image";
   }
 
-  void _navigateToPortfolio() {
-    Navigator.of(context).pop();
-    _initializePortfolioController();
+  double _getTotalInvest(PortfolioModel model) {
+    double result = 0;
+    for (var i = 0; i < model.assets.length; i++) {
+      result += model.assets[i].totalInvested;
+    }
+    return result;
+  }
+
+  String _getProfitLossText(Asset asset) {
+    double currentInvestedValue = asset.quantity * _getPrice(asset);
+    double profitLoss = currentInvestedValue - asset.totalInvested;
+
+    if (profitLoss >= 0) {
+      return '+\$${profitLoss.toStringAsFixed(2)}';
+    } else {
+      return '-\$${(profitLoss * -1).toStringAsFixed(2)}';
+    }
+  }
+
+  Color _getProfitLossColor(Asset asset) {
+    double currentInvestedValue = asset.quantity * _getPrice(asset);
+    double profitLoss = currentInvestedValue - asset.totalInvested;
+
+    return profitLoss >= 0 ? Colors.green : Colors.red;
   }
 }
 

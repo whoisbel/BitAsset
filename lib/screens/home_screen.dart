@@ -190,12 +190,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         MediaQuery.of(context)
                                                                 .size
                                                                 .width *
-                                                            0.05, // Adjust the font size
+                                                            0.05,
                                                         _getColor(controller
                                                             .cryptoList[index]
                                                             .priceChangePercentage24H),
-                                                        FontWeight
-                                                            .w500, // Adjust the fontWeight
+                                                        FontWeight.w500,
                                                       ),
                                                     ),
                                                   ],
@@ -219,7 +218,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           0.05,
                                                       Colors.white,
                                                       FontWeight.w500)),
-                                              // Add more details here as needed
                                             ],
                                           ),
                                           actions: [
@@ -238,6 +236,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       cryptoData:
                                                           selectedCryptoData,
                                                     ),
+                                                  ),
+                                                );
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                        'Added cryptocurrency in the portfolio'),
                                                   ),
                                                 );
                                               },
@@ -372,8 +377,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-        ) //
-        );
+        ));
   }
 }
 
